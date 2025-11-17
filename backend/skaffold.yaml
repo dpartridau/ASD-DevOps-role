@@ -1,0 +1,31 @@
+apiVersion: skaffold/v4beta1
+kind: Config
+metadata:
+  name: backend
+profiles:
+  - name: python
+    build:
+      artifacts:
+        - image: dev.local/d22/backend
+          docker:
+            dockerfile: python.Dockerfile
+  - name: java
+    build:
+      artifacts:
+        - image: dev.local/d22/backend
+          jib:
+            fromImage: registry.gitlab.com/av1o/base-images/tomcat-native:19
+build:
+  artifacts:
+  - image: dev.local/d22/backend
+    ko: {}
+  local:
+    push: false
+manifests:
+  kustomize:
+    paths:
+    - k8s
+deploy:
+  kubeContext: minikube
+  kubectl:
+    defaultNamespace: devops-2025
