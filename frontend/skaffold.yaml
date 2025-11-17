@@ -1,0 +1,19 @@
+apiVersion: skaffold/v4beta1
+kind: Config
+metadata:
+  name: frontend
+build:
+  artifacts:
+  - image: dev.local/d22/frontend
+    docker:
+      dockerfile: Dockerfile
+  local:
+    push: false
+manifests:
+  kustomize:
+    paths:
+    - k8s
+deploy:
+  kubeContext: minikube
+  kubectl:
+    defaultNamespace: devops-2025
