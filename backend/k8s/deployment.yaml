@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: backend
 spec:
+  replicas: 3  # scale > 1 to meet the assignment requirement
   selector:
     matchLabels:
       app.kubernetes.io/name: backend
@@ -11,9 +12,6 @@ spec:
       labels:
         app.kubernetes.io/name: backend
     spec:
-      volumes:
-        - name: tmp
-          emptyDir: {}
       containers:
         - name: app
           image: dev.local/d22/backend
@@ -22,11 +20,29 @@ spec:
             - containerPort: 8080
               name: web
               protocol: TCP
-          volumeMounts:
-            - name: tmp
-              mountPath: /tmp
+
+          # Env vars so main.py can find Redis
+          env:
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+
+          # Faster readiness / proper liveness
           readinessProbe:
             httpGet:
               port: web
               path: /healthz
-            initialDelaySeconds: 60
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 1
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              port: web
+              path: /healthz
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 1
+            failureThreshold: 3
