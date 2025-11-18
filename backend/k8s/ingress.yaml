@@ -2,18 +2,22 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: backend
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - bitcoin.192.168.49.2.nip.io  # update to match your minikube IP
+      secretName: backend-tls
   rules:
-    # make sure the IP address matches the output of `minikube ip`
-    # format should always be bitcoin.1.2.3.4.nip.io
     - host: bitcoin.192.168.49.2.nip.io
       http:
         paths:
-          - backend:
+          - path: /v1
+            pathType: Prefix
+            backend:
               service:
                 name: backend
                 port:
                   name: http
-            pathType: Prefix
-            path: /v1
