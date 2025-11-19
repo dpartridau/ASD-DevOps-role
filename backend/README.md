@@ -67,6 +67,39 @@ Key characteristics:
   GET /v1/bitcoins
 
 
+How to run and test end-to-end
+
+# Start minikube and ingress
+minikube start
+minikube addons enable ingress
+
+# Use the devops-2025 namespace
+kubectl create namespace devops-2025 || true
+
+# Deploy Redis + backend manifests
+kubectl apply -n devops-2025 -k k8s
+
+# Build and deploy backend with skaffold (python profile)
+skaffold run -p python
+
+and test
+
+# Find the host
+MINIKUBE_IP=$(minikube ip)
+HOST="bitcoin.${MINIKUBE_IP}.nip.io"
+
+# Add some bitcoins
+curl -k -X POST "https://${HOST}/v1/bitcoins?bitcoins=5" -i
+
+# Check total
+curl -k "https://${HOST}/v1/bitcoins"
+
+if you delete a backend pod:
+
+kubectl -n devops-2025 delete pod -l app.kubernetes.io/name=backend
+
+then query again, the bitcoins total should still be there → that’s your persistence proof.
+
 ## Python
 Virtual env was created using:
 
